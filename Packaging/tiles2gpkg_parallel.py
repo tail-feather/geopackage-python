@@ -790,6 +790,7 @@ class Geopackage(object):
                 (zoom_level, tile_column, tile_row, tile_data)
                 SELECT zoom_level, tile_column, tile_row, tile_data
                 FROM source.tiles;""")
+                db_con.commit()
                 cursor.execute("detach source;")
             except Error as err:
                 print("Error: {}".format(type(err)))
@@ -1020,7 +1021,7 @@ def worker_map(temp_db, tile_dict, extra_args, invert_y):
         temp_db.insert_image_blob(zoom, x_row, y_column, sbinary(data))
     else:
         file_handle = open(tile_dict['path'], 'rb')
-        data = buffer(file_handle.read())
+        data = file_handle.read()
         temp_db.insert_image_blob(zoom, x_row, y_column, data)
         file_handle.close()
 
@@ -1059,7 +1060,7 @@ def allocate(cores, pool, file_list, extra_args):
     processes.  For N processes and C cores, N=C if C is divisible by 2.  If
     not, then N is the largest factor of 8 that is still less than C.
     """
-    if cores is 1:
+    if cores == 1:
         print("Spawning worker with {} files".format(len(file_list)))
         return [pool.apply_async(sqlite_worker, [file_list, extra_args])]
     else:
